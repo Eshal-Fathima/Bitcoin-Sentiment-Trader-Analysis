@@ -71,35 +71,50 @@ def load_trades(path: str | None = None) -> pd.DataFrame:
 
     df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
 
-    # Rename to standard names
+    # Explicit rename map — priority order matters, first match wins per target
+    # We build target→source mapping to ensure no two cols map to the same name
+    TARGET_PRIORITY = {
+        "time":     ["timestamp_ist", "time", "timestamp", "datetime"],
+        "account":  ["account", "trader", "wallet", "user"],
+        "symbol":   ["coin", "symbol", "asset"],
+        "price":    ["execution_price", "price", "px"],
+        "size":     ["size_usd", "sz", "size", "qty", "amount"],
+        "side":     ["side", "direction"],
+        "leverage": ["leverage", "lev"],
+        "pnl":      ["closed_pnl", "pnl", "profit"],
+        "event":    ["event", "type"],
+    }
+
     rename = {}
+    used_targets = set()
+    for target, candidates in TARGET_PRIORITY.items():
+        for candidate in candidates:
+            if candidate in df.columns and target not in used_targets:
+                rename[candidate] = target
+                used_targets.add(target)
+                break
+
+    # Any remaining unmatched size/price columns get renamed to avoid conflicts
     for col in df.columns:
-        if col in ("time", "timestamp", "datetime"):
-            rename[col] = "time"
-        elif col in ("account", "trader", "wallet", "user"):
-            rename[col] = "account"
-        elif "symbol" in col or "coin" in col or "asset" in col:
-            rename[col] = "symbol"
-        elif "px" in col or "price" in col or "exec" in col:
-            rename[col] = "price"
-        elif "sz" in col or "size" in col or "qty" in col or "amount" in col:
-            rename[col] = "size"
-        elif col in ("side", "direction"):
-            rename[col] = "side"
-        elif "lev" in col:
-            rename[col] = "leverage"
-        elif "pnl" in col or "profit" in col or "closed_pnl" in col:
-            rename[col] = "pnl"
-        elif "event" in col or "type" in col:
-            rename[col] = "event"
+        if col not in rename and col not in rename.values():
+            if "size" in col:
+                rename[col] = f"size_{col}"   # e.g. size_tokens stays unique
+            elif "price" in col or "exec" in col:
+                rename[col] = f"extra_{col}"
+
     df.rename(columns=rename, inplace=True)
 
-    # Parse time
+    # Parse time — handle both unix timestamps and date strings
     if "time" in df.columns:
-        df["time"] = pd.to_datetime(df["time"], errors="coerce")
+        # Try standard datetime parse first
+        parsed = pd.to_datetime(df["time"], errors="coerce")
+        # If most values are NaT, try unix timestamp (seconds)
+        if parsed.isna().sum() > len(parsed) * 0.5:
+            parsed = pd.to_datetime(df["time"], unit="s", errors="coerce")
+        df["time"] = parsed
         df.dropna(subset=["time"], inplace=True)
         df["date"] = df["time"].dt.normalize()
-    
+
     # Numeric coercions
     for col in ("price", "size", "leverage", "pnl"):
         if col in df.columns:

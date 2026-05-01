@@ -1,9 +1,3 @@
-"""
-feature_engineering.py
------------------------
-Derives all analytical features from the merged dataset.
-"""
-
 import pandas as pd
 import numpy as np
 
