@@ -1,0 +1,22 @@
+# Data
+data/raw/
+data/processed/*.csv
+outputs/results.csv
+outputs/plots/*.png
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints
+
+# OS
+.DS_Store
+Thumbs.db
