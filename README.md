@@ -2,104 +2,122 @@
 
 ## 🚀 Overview
 
-This project explores how **market sentiment (Fear & Greed Index)** influences **trader behavior, risk-taking, and profitability** using real trading data.
+This project analyzes how **Bitcoin market sentiment (Fear & Greed Index)** impacts **trader behavior, risk exposure, and profitability**.
 
-By combining sentiment data with trade-level metrics, the analysis reveals how emotional market phases affect trading outcomes.
-
----
-
-## 🎯 Objectives
-
-* Analyze the impact of sentiment on trader profitability (PnL)
-* Examine leverage usage across different market conditions
-* Compare win rates under Fear vs Greed phases
-* Identify relationships between trading features using correlation analysis
+By combining sentiment data with real trading activity, the project uncovers how emotions like fear and greed influence decision-making and outcomes in financial markets.
 
 ---
 
 ## 📂 Project Structure
 
-```
+```text
 bitcoin-sentiment-trader-analysis/
 │
+├── data/
+│   ├── raw/                  # Original datasets (not pushed to GitHub)
+│   │   ├── bitcoin_sentiment.csv
+│   │   └── hyperliquid_trades.csv
+│   │
+│   └── processed/            # Cleaned & merged dataset
+│       └── merged_data.csv
+│
 ├── notebooks/
-│   └── analysis.ipynb        # Interactive analysis notebook
+│   └── analysis.ipynb        # Main notebook for running the analysis
 │
 ├── src/
-│   └── analysis.py           # Visualization & statistical analysis
+│   ├── data_preprocessing.py # Data loading, cleaning, merging
+│   ├── feature_engineering.py# Feature creation (PnL, win rate, leverage, etc.)
+│   └── analysis.py           # Visualization + statistical analysis
 │
 ├── outputs/
-│   └── plots/                # Generated visualizations
+│   ├── plots/                # Generated graphs (final results)
+│   └── results.csv           # Summary/statistical outputs
 │
+├── requirements.txt          # Python dependencies
 └── README.md
 ```
 
 ---
 
+## ⚙️ Workflow
+
+The project follows a structured data pipeline:
+
+1. **Data Preprocessing**
+
+   * Load sentiment and trade datasets
+   * Clean column formats and timestamps
+   * Merge datasets based on date alignment
+
+2. **Feature Engineering**
+
+   * Compute key metrics:
+
+     * Total PnL
+     * Win rate
+     * Average leverage
+     * Trade frequency
+   * Create trader profiles and risk indicators
+
+3. **Analysis & Visualization**
+
+   * Generate meaningful plots
+   * Analyze relationships between sentiment and performance
+   * Perform statistical testing
+
+---
+
 ## 📊 Key Visualizations
 
-This project focuses on **5 meaningful, non-redundant visualizations**:
+This project focuses on **5 essential, non-redundant graphs**:
 
-### 📦 1. PnL Distribution (Box Plot)
+* 📦 **PnL Distribution (Box Plot)**
+  → Shows how profitability varies across sentiment
 
-Shows how trader profitability varies across sentiment categories.
+* 📈 **Leverage Usage by Sentiment**
+  → Highlights risk-taking behavior
 
-### 📈 2. Leverage Usage by Sentiment
+* 🎯 **Win Rate Distribution**
+  → Compares trading success rates
 
-Highlights how traders adjust risk exposure under Fear vs Greed.
+* 🔥 **Combined Plot (Box + Individual Trades)**
+  → Displays both distribution and raw data
 
-### 🎯 3. Win Rate Distribution
-
-Compares trading success rates across sentiment conditions.
-
-### 🔥 4. Combined Plot (Box + Individual Points)
-
-Reveals both distribution and individual trade behavior.
-
-### 📊 5. Correlation Heatmap
-
-Displays relationships between PnL, leverage, trade count, and win rate.
+* 📊 **Correlation Heatmap**
+  → Reveals relationships between trading metrics
 
 ---
 
 ## 🧠 Key Insights
 
-* Trader performance varies significantly across sentiment phases
-* Increased leverage does not guarantee higher profitability
+* Trader performance varies across market sentiment phases
+* High leverage does not consistently improve profitability
 * Market sentiment influences risk-taking behavior
-* Distribution-based analysis reveals patterns hidden by averages
+* Distribution-based analysis provides deeper insights than averages
 
 ---
 
-## ⚙️ Tech Stack
+## ⚠️ Notes
 
-* **Python**
+* The dataset contains **limited unique timestamps**,
+  so the analysis focuses on **behavioral patterns** rather than time-series trends
+
+* Raw datasets are excluded from GitHub via `.gitignore`
+
+---
+
+## 📦 Tech Stack
+
+* Python
 * pandas, numpy
 * matplotlib, seaborn
 * scipy (statistical testing)
 
 ---
 
-## 📈 Methodology
-
-1. Data preprocessing and cleaning
-2. Feature engineering (PnL, win rate, leverage, etc.)
-3. Sentiment alignment using Fear & Greed Index
-4. Visualization using multiple plot types
-5. Statistical validation (Mann-Whitney U test)
-
----
-
-## ⚠️ Note
-
-The dataset contains limited unique timestamps.
-Therefore, the analysis focuses on **behavioral patterns and distributions** rather than time-series trends.
-
----
-
 ## 📌 Conclusion
 
-This project demonstrates that **market psychology plays a critical role in trading performance**, emphasizing the importance of sentiment-aware strategies in financial decision-making.
+This project demonstrates how **market psychology directly impacts trading behavior and outcomes**, emphasizing the importance of incorporating sentiment into trading strategies.
 
 ---
 
