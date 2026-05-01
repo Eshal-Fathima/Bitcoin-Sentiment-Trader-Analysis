@@ -22,60 +22,68 @@ SENTIMENT_ORDER = ["Extreme Fear", "Fear", "Neutral", "Greed", "Extreme Greed"]
 
 
 def _save(fig, name):
-    path = os.path.join(PLOTS_DIR, name)
-    fig.savefig(path, dpi=150, bbox_inches="tight")
+    fig.savefig(os.path.join(PLOTS_DIR, name), dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"✓ {name}")
 
 
-# ── FIXED PLOTS ─────────────────────────────────────────
-
-def plot_pnl_vs_sentiment(daily):
+# 1. BOX PLOT (summary)
+def plot_box(daily):
     fig, ax = plt.subplots(figsize=(10, 5))
     sns.boxplot(data=daily, x="sentiment", y="total_pnl",
                 order=SENTIMENT_ORDER, palette=PALETTE, ax=ax)
-    ax.set_title("PnL Distribution by Sentiment")
-    _save(fig, "01_pnl_vs_sentiment.png")
+    ax.set_title("PnL Distribution (Boxplot)")
+    _save(fig, "01_box.png")
 
 
-def plot_winrate_vs_sentiment(daily):
+# 2. VIOLIN PLOT (shape)
+def plot_violin(daily):
     fig, ax = plt.subplots(figsize=(10, 5))
-    sns.boxplot(data=daily, x="sentiment", y="win_rate",
+    sns.violinplot(data=daily, x="sentiment", y="total_pnl",
+                   order=SENTIMENT_ORDER, palette=PALETTE,
+                   inner="quartile", ax=ax)
+    ax.set_title("PnL Distribution Shape (Violin)")
+    _save(fig, "02_violin.png")
+
+
+# 3. SCATTER (relationship)
+def plot_scatter(daily):
+    fig, ax = plt.subplots(figsize=(10, 5))
+    sns.scatterplot(data=daily, x="avg_leverage", y="total_pnl",
+                    hue="sentiment", palette=PALETTE,
+                    alpha=0.6, ax=ax)
+    ax.set_title("Leverage vs PnL")
+    _save(fig, "03_scatter.png")
+
+
+# 4. COMBINED (box + strip)
+def plot_combined(daily):
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    sns.boxplot(data=daily, x="sentiment", y="total_pnl",
                 order=SENTIMENT_ORDER, palette=PALETTE, ax=ax)
-    ax.set_title("Win Rate Distribution by Sentiment")
-    _save(fig, "02_winrate_vs_sentiment.png")
+
+    sns.stripplot(data=daily, x="sentiment", y="total_pnl",
+                  order=SENTIMENT_ORDER, color="white",
+                  alpha=0.3, ax=ax)
+
+    ax.set_title("PnL Distribution + Individual Points")
+    _save(fig, "04_combined.png")
 
 
-def plot_trade_frequency(daily):
-    fig, ax = plt.subplots(figsize=(10, 5))
-    sns.boxplot(data=daily, x="sentiment", y="trade_count",
-                order=SENTIMENT_ORDER, palette=PALETTE, ax=ax)
-    ax.set_title("Trade Count Distribution")
-    _save(fig, "03_trade_frequency.png")
+# 5. HEATMAP (correlation)
+def plot_heatmap(daily):
+    cols = ["total_pnl", "win_rate", "avg_leverage", "trade_count"]
+    cols = [c for c in cols if c in daily.columns]
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.heatmap(daily[cols].corr(), annot=True, cmap="coolwarm", ax=ax)
+    ax.set_title("Feature Correlation Heatmap")
+    _save(fig, "05_heatmap.png")
 
 
-def plot_cumulative_pnl(daily):
-    agg = daily.groupby("account")["total_pnl"].sum().reset_index()
-
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(agg.index, agg["total_pnl"].cumsum())
-    ax.set_title("Cumulative PnL Across Traders")
-    _save(fig, "04_cumulative_pnl.png")
-
-
-def plot_trader_tier(daily):
-    if "trader_tier" not in daily.columns:
-        return
-
-    fig, ax = plt.subplots(figsize=(10, 5))
-    sns.boxplot(data=daily, x="trader_tier", y="total_pnl", ax=ax)
-    ax.set_title("Trader Tier Performance")
-    _save(fig, "05_trader_tier.png")
-
-
-# ── STATS ─────────────────────────────────────────
-
-def run_statistical_tests(daily):
+# ── STATS ─────────────────────────
+def run_stats(daily):
     fear = daily[daily["is_fear"] == 1]["total_pnl"]
     greed = daily[daily["is_fear"] == 0]["total_pnl"]
 
@@ -89,20 +97,20 @@ def run_statistical_tests(daily):
     }
 
 
-# ── MAIN FUNCTION (THIS WAS MISSING) ───────────────────
-
+# ── MAIN ─────────────────────────
 def run_all_analysis(daily):
-    print("Running analysis...")
+    print("\n📊 Generating 5 key graphs...")
 
-    plot_pnl_vs_sentiment(daily)
-    plot_winrate_vs_sentiment(daily)
-    plot_trade_frequency(daily)
-    plot_cumulative_pnl(daily)
-    plot_trader_tier(daily)
+    plot_box(daily)
+    plot_violin(daily)
+    plot_scatter(daily)
+    plot_combined(daily)
+    plot_heatmap(daily)
 
-    stats_res = run_statistical_tests(daily)
+    print("\n📐 Running stats...")
+    stats_res = run_stats(daily)
 
-    print("\nStatistical Results:")
+    print("\nResults:")
     for k, v in stats_res.items():
         print(f"{k}: {v}")
 
