@@ -29,9 +29,15 @@ bitcoin-sentiment-trader-analysis/
 │   ├── feature_engineering.py# Feature creation (PnL, win rate, leverage, etc.)
 │   └── analysis.py           # Visualization + statistical analysis
 │
-├── outputs/
-│   ├── plots/                # Generated graphs (final results)
-│   └── results.csv           # Summary/statistical outputs
+outputs/
+├── plots/                     # Generated visualizations (included in repo)
+│   ├── 01_box_pnl.png
+│   ├── 02_leverage.png
+│   ├── 03_winrate.png
+│   ├── 04_combined.png
+│   └── 05_heatmap.png
+│
+└── results.csv               # Statistical results         # Summary/statistical outputs
 │
 ├── requirements.txt          # Python dependencies
 └── README.md
