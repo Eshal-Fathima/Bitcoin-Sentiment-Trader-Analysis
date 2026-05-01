@@ -1,10 +1,8 @@
-# 📊 Bitcoin Sentiment vs Trader Performance Analysis
+# Bitcoin Sentiment vs Trader Performance Analysis
 
-## 🚀 Overview
+## Overview
 
-This project analyzes how **Bitcoin market sentiment (Fear & Greed Index)** impacts **trader behavior, risk exposure, and profitability**.
-
-By combining sentiment data with real trading activity, the project uncovers how emotions like fear and greed influence decision-making and outcomes in financial markets.
+This project analyzes how **Bitcoin market sentiment (Fear & Greed Index)** impacts **trader behavior, risk exposure, and profitability**. By combining sentiment data with real trading activity, the project uncovers how emotions like fear and greed influence decision-making and outcomes in financial markets.
 
 ---
 
@@ -45,20 +43,17 @@ outputs/
 
 ---
 
-## ⚙️ Workflow
+## Workflow
 
 The project follows a structured data pipeline:
 
 1. **Data Preprocessing**
-
    * Load sentiment and trade datasets
    * Clean column formats and timestamps
    * Merge datasets based on date alignment
 
 2. **Feature Engineering**
-
    * Compute key metrics:
-
      * Total PnL
      * Win rate
      * Average leverage
@@ -66,7 +61,6 @@ The project follows a structured data pipeline:
    * Create trader profiles and risk indicators
 
 3. **Analysis & Visualization**
-
    * Generate meaningful plots
    * Analyze relationships between sentiment and performance
    * Perform statistical testing
@@ -75,27 +69,27 @@ The project follows a structured data pipeline:
 
 ## 📊 Key Visualizations
 
-This project focuses on **5 essential, non-redundant graphs**:
+This project focuses on 5 essential, non-redundant graphs, each designed to capture a different aspect of trader behavior under varying market sentiment:
 
-* 📦 **PnL Distribution (Box Plot)**
-  → Shows how profitability varies across sentiment
+* 📦 **PnL Distribution (Box Plot)** → Shows how profitability varies across sentiment
+  → Highlights median performance, spread, and outliers, helping identify whether traders perform better during Fear or Greed phases.
 
-* 📈 **Leverage Usage by Sentiment**
-  → Highlights risk-taking behavior
+* 📈 **Leverage Usage by Sentiment** → Highlights risk-taking behavior
+  → Reveals how traders adjust leverage based on market emotions, indicating whether risk appetite increases during Greed or decreases during Fear.
 
-* 🎯 **Win Rate Distribution**
-  → Compares trading success rates
+* 🎯 **Win Rate Distribution** → Compares trading success rates
+  → Evaluates consistency of trader performance and whether sentiment affects the probability of winning trades.
 
-* 🔥 **Combined Plot (Box + Individual Trades)**
-  → Displays both distribution and raw data
+* 🔥 **Combined Plot (Box + Individual Trades)** → Displays both distribution and raw data
+  → Combines statistical summary with individual trade points to uncover hidden patterns, clusters, and variability that averages alone cannot show.
 
-* 📊 **Correlation Heatmap**
-  → Reveals relationships between trading metrics
+* 📊 **Correlation Heatmap** → Reveals relationships between trading metrics
+  → Identifies how key variables (PnL, leverage, trade count, win rate) interact, helping understand which factors most influence trading outcomes.
+
 
 ---
 
-## 🧠 Key Insights
-
+## Insights
 * Trader performance varies across market sentiment phases
 * High leverage does not consistently improve profitability
 * Market sentiment influences risk-taking behavior
@@ -103,17 +97,14 @@ This project focuses on **5 essential, non-redundant graphs**:
 
 ---
 
-## ⚠️ Notes
-
+##  Notes
 * The dataset contains **limited unique timestamps**,
   so the analysis focuses on **behavioral patterns** rather than time-series trends
-
 * Raw datasets are excluded from GitHub via `.gitignore`
 
 ---
 
-## 📦 Tech Stack
-
+## Tech Stack
 * Python
 * pandas, numpy
 * matplotlib, seaborn
@@ -121,12 +112,4 @@ This project focuses on **5 essential, non-redundant graphs**:
 
 ---
 
-## 📌 Conclusion
-
 This project demonstrates how **market psychology directly impacts trading behavior and outcomes**, emphasizing the importance of incorporating sentiment into trading strategies.
-
----
-
-## 👤 Author
-
-Your Name
