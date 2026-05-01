@@ -6,18 +6,17 @@ with the Hyperliquid trader data.
 """
 
 import pandas as pd
-import numpy as np
 import os
 
 
-# ── Paths ──────────────────────────────────────────────────────────────────
+# ── Paths ────────────────────────────────────────────────────────────────
 RAW_DIR       = os.path.join(os.path.dirname(__file__), "..", "data", "raw")
 PROCESSED_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "processed")
 os.makedirs(PROCESSED_DIR, exist_ok=True)
 
 
-# ── Loaders ────────────────────────────────────────────────────────────────
-def load_sentiment(path: str | None = None) -> pd.DataFrame:
+# ── SENTIMENT ────────────────────────────────────────────────────────────
+def load_sentiment(path=None):
     path = path or os.path.join(RAW_DIR, "bitcoin_sentiment.csv")
     df = pd.read_csv(path)
 
@@ -31,6 +30,7 @@ def load_sentiment(path: str | None = None) -> pd.DataFrame:
             rename[col] = "sentiment"
         elif "value" in col and "class" not in col:
             rename[col] = "fear_greed_value"
+
     df.rename(columns=rename, inplace=True)
 
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
@@ -46,10 +46,10 @@ def load_sentiment(path: str | None = None) -> pd.DataFrame:
     }
 
     df["sentiment"] = (
-        df["sentiment"].str.strip().str.lower().map(label_map).fillna(df["sentiment"])
+        df["sentiment"].astype(str).str.lower().map(label_map).fillna(df["sentiment"])
     )
 
-    df["is_fear"] = df["sentiment"].isin({"Extreme Fear", "Fear"}).astype(int)
+    df["is_fear"] = df["sentiment"].isin(["Fear", "Extreme Fear"]).astype(int)
 
     df = df.sort_values("date").drop_duplicates("date")
     df.reset_index(drop=True, inplace=True)
@@ -57,55 +57,55 @@ def load_sentiment(path: str | None = None) -> pd.DataFrame:
     return df
 
 
-def load_trades(path: str | None = None) -> pd.DataFrame:
+# ── TRADES ───────────────────────────────────────────────────────────────
+def load_trades(path=None):
     path = path or os.path.join(RAW_DIR, "hyperliquid_trades.csv")
     df = pd.read_csv(path)
 
     df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
 
-    TARGET_PRIORITY = {
-        "time": ["timestamp", "timestamp_ist", "time"],
-        "account": ["account"],
-        "symbol": ["coin"],
-        "price": ["execution_price"],
-        "size": ["size_usd"],
-        "side": ["side"],
-        "pnl": ["closed_pnl"],
+    # Rename based on your dataset
+    rename = {
+        "account": "account",
+        "coin": "symbol",
+        "execution_price": "price",
+        "size_usd": "size",
+        "side": "side",
+        "timestamp": "time",        # IMPORTANT: use this column
+        "closed_pnl": "pnl",
     }
-
-    rename = {}
-    for target, candidates in TARGET_PRIORITY.items():
-        for c in candidates:
-            if c in df.columns:
-                rename[c] = target
-                break
 
     df.rename(columns=rename, inplace=True)
 
-    # 🔥 FORCE leverage (since not present)
-    df["leverage"] = 1
+    # 🔥 FIXED TIMESTAMP PARSING (milliseconds)
+    if pd.api.types.is_numeric_dtype(df["time"]):
+        print("[info] Detected numeric timestamp → using milliseconds")
+        df["time"] = pd.to_datetime(df["time"], unit="ms", errors="coerce")
+    else:
+        df["time"] = pd.to_datetime(df["time"], errors="coerce")
 
-    # 🔥 FIXED TIME PARSING (IMPORTANT)
-    df["time"] = pd.to_datetime(df["time"], errors="coerce")
+    # Debug
+    print("[DEBUG] Sample timestamps:")
+    print(df["time"].head())
 
-    # Try unix timestamp if failed
-    if df["time"].isna().sum() > len(df) * 0.5:
-        print("[info] Trying unix timestamp parsing...")
-        df["time"] = pd.to_datetime(df["time"], unit="s", errors="coerce")
-
-    # KEEP only valid rows (safe filtering)
+    # Remove invalid rows safely
     before = len(df)
     df = df[df["time"].notna()]
     after = len(df)
     print(f"[time parsing] kept {after}/{before} rows")
 
+    # Remove timezone
     df["time"] = df["time"].dt.tz_localize(None)
+
+    # Extract date
     df["date"] = df["time"].dt.normalize()
 
     # Convert numeric
-    for col in ["price", "size", "pnl", "leverage"]:
+    for col in ["price", "size", "pnl"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
+    # Add missing columns
+    df["leverage"] = 1
     df["is_win"] = (df["pnl"] > 0).astype(int)
 
     df = df.sort_values("time").reset_index(drop=True)
@@ -113,12 +113,13 @@ def load_trades(path: str | None = None) -> pd.DataFrame:
     return df
 
 
-# ── Merge ──────────────────────────────────────────────────────────────────
+# ── MERGE ────────────────────────────────────────────────────────────────
 def merge_datasets(sentiment, trades):
 
     sentiment = sentiment.sort_values("date")
     trades = trades.sort_values("date")
 
+    # 🔥 Use nearest match (important)
     merged = pd.merge_asof(
         trades,
         sentiment,
@@ -129,29 +130,36 @@ def merge_datasets(sentiment, trades):
     merged["sentiment"].fillna("Neutral", inplace=True)
     merged["is_fear"].fillna(0, inplace=True)
 
-    print(f"[merge] Final rows: {len(merged)}")
+    print("\n[merge] Sentiment distribution:")
+    print(merged["sentiment"].value_counts())
 
     return merged
 
-# ── Save ───────────────────────────────────────────────────────────────────
-def save_processed(df: pd.DataFrame):
+
+# ── SAVE ─────────────────────────────────────────────────────────────────
+def save_processed(df):
     out = os.path.join(PROCESSED_DIR, "merged_data.csv")
     df.to_csv(out, index=False)
     print(f"[save] Written → {out}")
 
 
-# ── Pipeline ───────────────────────────────────────────────────────────────
+# ── PIPELINE ─────────────────────────────────────────────────────────────
 def run_pipeline():
     print("Loading sentiment …")
     sentiment = load_sentiment()
     print(f"  → {len(sentiment)} rows")
 
-    print("Loading trades …")
+    print("\nLoading trades …")
     trades = load_trades()
     print(f"  → {len(trades)} rows")
 
-    print("Merging …")
+    print("\nMerging …")
     merged = merge_datasets(sentiment, trades)
 
     save_processed(merged)
+
     return merged
+
+
+if __name__ == "__main__":
+    run_pipeline()
